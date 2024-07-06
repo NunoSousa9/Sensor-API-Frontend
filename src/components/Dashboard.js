@@ -17,13 +17,9 @@ const Dashboard = () => {
 
     const fetchData = async () => {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        const config = {
-            headers: { Authorization: `Bearer ${token}` }
-        };
         try {
-            const tempResponse = await axiosInstance.get('/sensors/temperature', config);
-            const lumResponse = await axiosInstance.get('/sensors/luminosity', config);
+            const tempResponse = await axiosInstance.get('/sensors/temperature');
+            const lumResponse = await axiosInstance.get('/sensors/luminosity');
 
             setTemperatureSensors(Array.isArray(tempResponse.data) ? tempResponse.data : []);
             setLuminositySensors(Array.isArray(lumResponse.data) ? lumResponse.data : []);

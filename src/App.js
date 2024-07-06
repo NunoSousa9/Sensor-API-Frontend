@@ -1,10 +1,15 @@
-import React from "react";
+import React, {useEffect} from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import SensorManagement from "./components/SensorManagement";
 
 const App = () => {
+
+  useEffect(() => {
+    localStorage.removeItem('token');
+}, []);
+
   return (
     <Router>
       <Routes>

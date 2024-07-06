@@ -20,14 +20,8 @@ const SensorManagement = () => {
 
     const fetchSensors = async () => {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        const config = {
-            headers: { Authorization: `Bearer ${token}` }
-        };
-
         try {
-            const response = await axiosInstance.get('/sensors', config);
-            console.log('Fetched sensors:', response.data);
+            const response = await axiosInstance.get('/sensors');
             setSensors(response.data);
         } catch (error) {
             console.error('Failed to fetch sensors:', error);
@@ -49,30 +43,12 @@ const SensorManagement = () => {
     const handleSave = async () => {
         try {
             const values = await form.validateFields();
-            console.log('Form values:', values);
 
-            const token = localStorage.getItem('token');
-            const config = {
-                headers: { Authorization: `Bearer ${token}`}
-            };
-            
             if (editingSensor) {
-                if (values.type === "temperature") {
-                    const response = await axiosInstance.put(`/sensors/temperature/${editingSensor.id}`, values, config);
-                    console.log('Update response:', response.data);
-                } else {
-                    const response = await axiosInstance.put(`/sensors/luminosity/${editingSensor.id}`, values, config);
-                    console.log('Update response:', response.data);
-                }
-                message.success('Sensor uptated successfully');
+                await axiosInstance.put(`/sensors/${values.type}/${editingSensor.id}`, values);
+                message.success('Sensor updated successfully');
             } else {
-                if (values.type === "temperature") {
-                    const response = await axiosInstance.post('/sensors/temperature', values, config);
-                    console.log('Add response:', response.data); 
-                } else {
-                    const response = await axiosInstance.post('/sensors/luminosity', values, config);
-                    console.log('Add response:', response.data);
-                }
+                await axiosInstance.post(`/sensors/${values.type}`, values);
                 message.success('Sensor added successfully');
             }
             fetchSensors();
@@ -85,22 +61,13 @@ const SensorManagement = () => {
 
     const handleEdit = (sensor) => {
         setEditingSensor(sensor);
-        form.setFieldValue(sensor);
+        form.setFieldsValue(sensor);
         showModal();
     };
 
     const handleDelete = async (id, type) => {
         try {
-            const token = localStorage.getItem('token');
-            const config = {
-                headers: { Authorization: `Bearer ${token}` }
-            };
-
-            if (type === "temperature") {
-                await axiosInstance.delete(`/sensors/temperature/${id}`, config);
-            } else {
-                await axiosInstance.delete(`/sensors/luminosity/${id}`, config);
-            }
+            await axiosInstance.delete(`/sensors/${type}/${id}`);
             message.success('Sensor deleted successfully');
             fetchSensors();
         } catch (error) {
@@ -123,7 +90,7 @@ const SensorManagement = () => {
         {
             title: 'Timestamp',
             dataIndex: 'timestamp',
-            key: 'value',
+            key: 'timestamp',
         },
         {
             title: 'UID',
@@ -138,7 +105,7 @@ const SensorManagement = () => {
                     <Button onClick={() => handleEdit(record)} type="link">
                         Edit
                     </Button>
-                    <Popconfirm title="Are you sure?" onConfirm={() => handleDelete(record.id)}>
+                    <Popconfirm title="Are you sure?" onConfirm={() => handleDelete(record.id, record.type)}>
                         <Button type="link" danger>
                             Delete
                         </Button>
