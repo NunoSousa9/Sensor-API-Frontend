@@ -30,32 +30,58 @@ const Dashboard = () => {
         }
     };
 
+    const menuItems = [
+        {
+          label: "Dashboard",
+          key: "1",
+          onClick: () => navigate("/dashboard"),
+        },
+        {
+          label: "Manage Sensors",
+          key: "2",
+          onClick: () => navigate("/manage-sensors"),
+        },
+      ];
+
     return (
         <Layout>
-            <Header>
-                <Menu theme="dark" mode="horizontal">
-                <Menu.Item key="1" onClick={() => navigate('/dashboard')}>Dashboard</Menu.Item>
-                <Menu.Item key="2" onClick={() => navigate('/manage-sensors')}>Manage Sensors</Menu.Item>
-                </Menu>
-            </Header>
-            <Content style={{ padding: '50px' }}>
-                <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                        <Card loading= {loading} title="Temperature Sensors">
-                            <Statistic title="Count" value={temperatureSensors.length} />
-                            <Statistic title="Average Value" value={temperatureSensors.length > 0 ? temperatureSensors.reduce((sum, sensor) => sum + sensor.value, 0) / temperatureSensors.length : 0} />
-                        </Card>
-                    </Col>
-                    <Col span={12}>
-                        <Card loading={loading} title="Luminosity Sensors">
-                            <Statistic title="Count" value={luminositySensors.length} />
-                            <Statistic title="Average Value" value={luminositySensors.length > 0 ? luminositySensors.reduce((sum, sensor) => sum + sensor.value, 0) / luminositySensors.length : 0} />
-                        </Card>
-                    </Col>
-                </Row>
-            </Content>
+          <Header>
+            <Menu theme="dark" mode="horizontal" items={menuItems} />
+          </Header>
+          <Content style={{ padding: "50px" }}>
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Card loading={loading} title="Temperature Sensors">
+                  <Statistic title="Count" value={temperatureSensors.length} />
+                  <Statistic
+                    title="Average Value"
+                    value={
+                      temperatureSensors.length > 0
+                        ? temperatureSensors.reduce((sum, sensor) => sum + sensor.value, 0) /
+                          temperatureSensors.length
+                        : 0
+                    }
+                  />
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card loading={loading} title="Luminosity Sensors">
+                  <Statistic title="Count" value={luminositySensors.length} />
+                  <Statistic
+                    title="Average Value"
+                    value={
+                      luminositySensors.length > 0
+                        ? luminositySensors.reduce((sum, sensor) => sum + sensor.value, 0) /
+                          luminositySensors.length
+                        : 0
+                    }
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </Content>
         </Layout>
-    );
-};
+      );
+    };
 
 export default Dashboard;

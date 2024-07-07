@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {Form, Input, Button, Checkbox, message} from 'antd';
+import { Form, Input, Button, Checkbox, message } from 'antd';
 import axios from '../api/axiosInstance';
 
 const Login = () => {
@@ -9,30 +9,26 @@ const Login = () => {
 
     const onFinish = async (values) => {
         setLoading(true);
-        console.log('Login values:', values);
-    
-        const loginData = {
-            username: values.username,
-            password: values.password
-        };
-    
-        console.log('Login data being sent:', loginData);
-    
+        console.log('Login data being sent:', values);
+
         try {
-            const response = await axios.post('/auth/login', loginData);
-            if (response.status !== 200) {
-                throw new Error('Network response was not ok');
-            }
-    
-            const token = response.data.token;
-            console.log('Response data:', token);
-    
-            if (token) {
-                localStorage.setItem('token', token);
+            const response = await axios.post('/auth/login', {
+                username: values.username,
+                password: values.password
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('Response:', response);
+
+            if (response.status === 200) {
+                localStorage.setItem('token', response.data.token);
                 message.success('Login successful!');
                 navigate('/dashboard');
             } else {
-                message.error('Login failed. No token received.');
+                message.error('Login failed. Please check your credentials.');
             }
         } catch (error) {
             console.error('Login error:', error);

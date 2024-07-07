@@ -9,7 +9,7 @@ const { Option } = Select;
 const SensorManagement = () => {
     const [loading, setLoading] = useState(true);
     const [sensors, setSensors] = useState([]);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSensor, setEditingSensor] = useState(null);
     const navigate = useNavigate();
     const [form] = Form.useForm();
@@ -31,11 +31,11 @@ const SensorManagement = () => {
     };
 
     const showModal = () => {
-        setIsModalVisible(true);
+        setIsModalOpen(true);
     };
 
     const handleCancel = () => {
-        setIsModalVisible(false);
+        setIsModalOpen(false);
         setEditingSensor(null);
         form.resetFields();
     };
@@ -115,13 +115,23 @@ const SensorManagement = () => {
         },
     ];
 
+    const menuItems = [
+        {
+            label: 'Dashboard',
+            key: '1',
+            onClick: () => navigate('/dashboard'),
+        },
+        {
+            label: 'Manage Sensors',
+            key: '2',
+            onClick: () => navigate('/manage-sensors'),
+        },
+    ];
+
     return (
         <Layout>
             <Header>
-                <Menu theme="dark" mode="horizontal">
-                    <Menu.Item key="1" onClick={() => navigate('/dashboard')}>Dashboard</Menu.Item>
-                    <Menu.Item key="2" onClick={() => navigate('/manage-sensors')}>Manage Sensors</Menu.Item>
-                </Menu>
+                <Menu theme="dark" mode="horizontal" items={menuItems} />
             </Header>
             <Content style={{ padding: '50px' }}>
                 <Button type="primary" onClick={showModal}>
@@ -130,7 +140,7 @@ const SensorManagement = () => {
                 <Table dataSource={sensors} columns={columns} loading={loading} rowKey="id" />
                 <Modal
                     title={editingSensor ? 'Edit Sensor' : 'Add Sensor'}
-                    visible={isModalVisible}
+                    open={isModalOpen}
                     onCancel={handleCancel}
                     onOk={handleSave}
                 >
