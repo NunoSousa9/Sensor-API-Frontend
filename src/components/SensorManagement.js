@@ -2,7 +2,6 @@ import React, { useState, useEffect} from "react";
 import { Layout, Menu, Table, Button, Modal, Form, Input, message, Popconfirm, Select } from "antd";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-import moment from 'moment';
 
 const { Header, Content } = Layout;
 const { Option } = Select;
@@ -88,26 +87,23 @@ const SensorManagement = () => {
             title: 'Type',
             dataIndex: 'type',
             key: 'type',
+            render: (text) => {
+                return text.charAt(0).toUpperCase() + text.slice(1);
+            },
         },
         {
             title: 'Value',
             dataIndex: 'value',
             key: 'value',
             render: (value, record) => {
-                if (record.type === 'temperature') {
-                    return `${value} ºC`;
-                } else {
-                    return `${value} lx`
-                }
+                return record.type === 'temperature' ? `${value} ºC` : `${value} lx`;
             },
         },
         {
             title: 'Timestamp',
             dataIndex: 'timestamp',
             key: 'timestamp',
-            render: (text) => {
-                return moment(text).format('YYYY-MM-DD HH:mm:ss');
-            },
+            render: (text) => new Date(text).toLocaleString()
         },
         {
             title: 'UID',
@@ -174,9 +170,6 @@ const SensorManagement = () => {
                         </Form.Item>
                         <Form.Item name="value" label="Value" rules={[{ required: true, message: 'Please input the Value!' }]}>
                             <Input type="number"/>
-                        </Form.Item>
-                        <Form.Item name="timestamp" label="Timestamp" rules={[{ required: true, message: 'Please input the Timestamp!' }]}>
-                            <Input type="datetime-local" />
                         </Form.Item>
                         <Form.Item name="uid" label="UID" rules={[{ required: true, message: 'Please input the UID!' }]}>
                             <Input />
