@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { Layout, Menu, Card, Row, Col, Statistic } from "antd";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
@@ -7,8 +7,10 @@ const { Header, Content } = Layout;
 
 const Dashboard = () => {
     const [loading, setLoading] = useState(true);
-    const [temperatureSensors, setTemperatureSensors] = useState ([]);
-    const [luminositySensors, setLuminositySensors] = useState ([]);
+    const [temperatureSensors, setTemperatureSensors] = useState([]);
+    const [luminositySensors, setLuminositySensors] = useState([]);
+    const [temperatureStats, setTemperatureStats] = useState({ min: 0, max: 0, avg: 0, stdDev: 0 });
+    const [luminosityStats, setLuminosityStats] = useState({ min: 0, max: 0, avg: 0, stdDev: 0 });
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -18,11 +20,36 @@ const Dashboard = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const tempResponse = await axiosInstance.get('/sensors/temperature');
-            const lumResponse = await axiosInstance.get('/sensors/luminosity');
+            const [tempResponse, lumResponse] = await Promise.all([
+                axiosInstance.get('/sensors/temperature'),
+                axiosInstance.get('/sensors/luminosity')
+            ]);
 
-            setTemperatureSensors(Array.isArray(tempResponse.data) ? tempResponse.data : []);
-            setLuminositySensors(Array.isArray(lumResponse.data) ? lumResponse.data : []);
+            const tempSensors = Array.isArray(tempResponse.data) ? tempResponse.data : [];
+            const lumSensors = Array.isArray(lumResponse.data) ? lumResponse.data : [];
+
+            setTemperatureSensors(tempSensors);
+            setLuminositySensors(lumSensors);
+
+            if (tempSensors.length > 0) {
+              const tempValues = tempSensors.map(sensor => sensor.value);
+                setTemperatureStats({
+                    min: Math.min(...tempSensors.map(sensor => sensor.value)),
+                    max: Math.max(...tempSensors.map(sensor => sensor.value)),
+                    avg: (tempSensors.reduce((sum, sensor) => sum + sensor.value, 0) / tempSensors.length).toFixed(2),
+                    stdDev: calculateStandardDeviation(tempValues).toFixed(2)
+                });
+            }
+
+            if (lumSensors.length > 0) {
+              const lumValues = lumSensors.map(sensor => sensor.value);
+                setLuminosityStats({
+                    min: Math.min(...lumSensors.map(sensor => sensor.value)),
+                    max: Math.max(...lumSensors.map(sensor => sensor.value)),
+                    avg: (lumSensors.reduce((sum, sensor) => sum + sensor.value, 0) / lumSensors.length).toFixed(2),
+                    stdDev: calculateStandardDeviation(lumValues).toFixed(2)
+                });
+            }
         } catch (error) {
             console.error('Failed to fetch data:', error);
         } finally {
@@ -30,58 +57,56 @@ const Dashboard = () => {
         }
     };
 
+    const calculateStandardDeviation = (values) => {
+      const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+      const squaredDiffs = values.map(value => Math.pow(value - mean, 2));
+      const avgSquaredDiff = squaredDiffs.reduce((sum, value) => sum + value, 0) / values.length;
+      return Math.sqrt(avgSquaredDiff);
+  };
+
     const menuItems = [
         {
-          label: "Dashboard",
-          key: "1",
-          onClick: () => navigate("/dashboard"),
+            label: "Dashboard",
+            key: "1",
+            onClick: () => navigate("/dashboard"),
         },
         {
-          label: "Manage Sensors",
-          key: "2",
-          onClick: () => navigate("/manage-sensors"),
+            label: "Manage Sensors",
+            key: "2",
+            onClick: () => navigate("/manage-sensors"),
         },
-      ];
+    ];
 
     return (
         <Layout>
-          <Header>
-            <Menu theme="dark" mode="horizontal" items={menuItems} />
-          </Header>
-          <Content style={{ padding: "50px" }}>
-            <Row gutter={[16, 16]}>
-              <Col span={12}>
-                <Card loading={loading} title="Temperature Sensors">
-                  <Statistic title="Count" value={temperatureSensors.length} />
-                  <Statistic
-                    title="Average Value"
-                    value={
-                      temperatureSensors.length > 0
-                        ? temperatureSensors.reduce((sum, sensor) => sum + sensor.value, 0) /
-                          temperatureSensors.length
-                        : 0
-                    }
-                  />
-                </Card>
-              </Col>
-              <Col span={12}>
-                <Card loading={loading} title="Luminosity Sensors">
-                  <Statistic title="Count" value={luminositySensors.length} />
-                  <Statistic
-                    title="Average Value"
-                    value={
-                      luminositySensors.length > 0
-                        ? luminositySensors.reduce((sum, sensor) => sum + sensor.value, 0) /
-                          luminositySensors.length
-                        : 0
-                    }
-                  />
-                </Card>
-              </Col>
-            </Row>
-          </Content>
+            <Header>
+                <Menu theme="dark" mode="horizontal" items={menuItems} />
+            </Header>
+            <Content style={{ padding: "50px" }}>
+                <Row gutter={[16, 16]}>
+                    <Col span={12}>
+                        <Card loading={loading} title="Temperature Sensors">
+                            <Statistic title="Count" value={temperatureSensors.length} />
+                            <Statistic title="Average Value" value={`${temperatureStats.avg} ºC`} />
+                            <Statistic title="Min Value" value={`${temperatureStats.min} ºC`} />
+                            <Statistic title="Max Value" value={`${temperatureStats.max} ºC`} />
+                            <Statistic title="Standard Deviation" value={`${temperatureStats.stdDev} ºC`} />
+                        </Card>
+                    </Col>
+                    <Col span={12}>
+                        <Card loading={loading} title="Luminosity Sensors">
+                            <Statistic title="Count" value={luminositySensors.length} />
+                            <Statistic title="Average Value" value={`${luminosityStats.avg} lx`} />
+                            <Statistic title="Min Value" value={`${luminosityStats.min} lx`} />
+                            <Statistic title="Max Value" value={`${luminosityStats.max} lx`} />
+                            <Statistic title="Standard Deviation" value={`${luminosityStats.stdDev} lx`} />
+                        </Card>
+                    </Col>
+                </Row>
+            </Content>
         </Layout>
-      );
-    };
+    );
+};
 
 export default Dashboard;
+

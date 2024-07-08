@@ -2,6 +2,7 @@ import React, { useState, useEffect} from "react";
 import { Layout, Menu, Table, Button, Modal, Form, Input, message, Popconfirm, Select } from "antd";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import moment from 'moment';
 
 const { Header, Content } = Layout;
 const { Option } = Select;
@@ -43,6 +44,12 @@ const SensorManagement = () => {
     const handleSave = async () => {
         try {
             const values = await form.validateFields();
+
+            if (values.type === 'temperature') {
+                values.value = parseFloat(values.value);
+            } else if (values.type === 'luminosity') {
+                values.value = parseInt(values.value, 10);
+            }
 
             if (editingSensor) {
                 await axiosInstance.put(`/sensors/${values.type}/${editingSensor.id}`, values);
@@ -86,11 +93,21 @@ const SensorManagement = () => {
             title: 'Value',
             dataIndex: 'value',
             key: 'value',
+            render: (value, record) => {
+                if (record.type === 'temperature') {
+                    return `${value} ºC`;
+                } else {
+                    return `${value} lx`
+                }
+            },
         },
         {
             title: 'Timestamp',
             dataIndex: 'timestamp',
             key: 'timestamp',
+            render: (text) => {
+                return moment(text).format('YYYY-MM-DD HH:mm:ss');
+            },
         },
         {
             title: 'UID',
@@ -100,18 +117,22 @@ const SensorManagement = () => {
         {
             title: 'Action',
             key: 'action',
-            render: (_, record) => {
-                <>
-                    <Button onClick={() => handleEdit(record)} type="link">
+            render: (_, record) => (
+                <div style={{ display: 'flex', gap: '5px' }}>
+                    <Button 
+                        onClick={() => handleEdit(record)} 
+                        type="primary" 
+                        style={{ backgroundColor: 'orange', color: 'white', borderColor: 'orange' }}
+                    >
                         Edit
                     </Button>
                     <Popconfirm title="Are you sure?" onConfirm={() => handleDelete(record.id, record.type)}>
-                        <Button type="link" danger>
+                        <Button type="primary" danger>
                             Delete
                         </Button>
                     </Popconfirm>
-                </>
-            },
+                </div>
+            ),
         },
     ];
 
