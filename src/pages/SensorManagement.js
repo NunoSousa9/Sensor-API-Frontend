@@ -11,6 +11,7 @@ const SensorManagement = () => {
     const [sensors, setSensors] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSensor, setEditingSensor] = useState(null);
+    const [nextUID, setNextUID] = useState(null); 
     const navigate = useNavigate();
     const [form] = Form.useForm();
 
@@ -30,7 +31,17 @@ const SensorManagement = () => {
         }
     };
 
-    const showModal = () => {
+    const fetchNextUID = async () => {
+        try {
+            const response = await axiosInstance.get('/sensors/current-uid');
+            setNextUID(response.data + 1);
+        } catch (error) {
+            console.error('Failed to fetch current UID:', error);
+        }
+    }
+
+    const showModal = async () => {
+        fetchNextUID();
         setIsModalOpen(true);
     };
 
@@ -45,16 +56,16 @@ const SensorManagement = () => {
             const values = await form.validateFields();
 
             if (values.type === 'temperature') {
-                values.value = parseFloat(values.value);
+                values.value = parseFloat(values.value).toFixed(1);
             } else if (values.type === 'luminosity') {
                 values.value = parseInt(values.value, 10);
             }
 
             if (editingSensor) {
-                await axiosInstance.put(`/sensors/${values.type}/${editingSensor.id}`, values);
+                await axiosInstance.put(`/sensors/${values.type}/${editingSensor.id}`, { ...values, timestamp: editingSensor.timestamp });
                 message.success('Sensor updated successfully');
             } else {
-                await axiosInstance.post(`/sensors/${values.type}`, values);
+                await axiosInstance.post(`/sensors/${values.type}`, { ...values, uid: nextUID });
                 message.success('Sensor added successfully');
             }
             fetchSensors();
@@ -67,8 +78,11 @@ const SensorManagement = () => {
 
     const handleEdit = (sensor) => {
         setEditingSensor(sensor);
-        form.setFieldsValue(sensor);
-        showModal();
+        form.setFieldsValue({
+            ...sensor,
+            timestamp: sensor.timestamp ? new Date(sensor.timestamp).toISOString().slice(0, 16) : ''
+        });
+        setIsModalOpen(true);
     };
 
     const handleDelete = async (id, type) => {
@@ -96,7 +110,7 @@ const SensorManagement = () => {
             dataIndex: 'value',
             key: 'value',
             render: (value, record) => {
-                return record.type === 'temperature' ? `${value} ºC` : `${value} lx`;
+                return record.type === 'temperature' ? `${parseFloat(value).toFixed(1)} ºC` : `${value} lx`;
             },
         },
         {
@@ -132,6 +146,12 @@ const SensorManagement = () => {
         },
     ];
 
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/login');
+        message.success('Logged out successfully');
+    };
+
     const menuItems = [
         {
             label: 'Dashboard',
@@ -143,6 +163,12 @@ const SensorManagement = () => {
             key: '2',
             onClick: () => navigate('/manage-sensors'),
         },
+        {
+            label: "Logout",
+            key: "3",
+            onClick: handleLogout,
+            style: { marginLeft: 'auto' }
+        }
     ];
 
     return (
@@ -154,6 +180,8 @@ const SensorManagement = () => {
                 <Button type="primary" onClick={showModal}>
                     Add Sensor
                 </Button>
+                <br></br>
+                <br></br>
                 <Table dataSource={sensors} columns={columns} loading={loading} rowKey="id" />
                 <Modal
                     title={editingSensor ? 'Edit Sensor' : 'Add Sensor'}
@@ -162,6 +190,7 @@ const SensorManagement = () => {
                     onOk={handleSave}
                 >
                     <Form form= {form} layout="vertical">
+                        
                         <Form.Item name="type" label="Type" rules={[{ required: true, message: 'Please select the Type!' }]}>
                             <Select disabled={!!editingSensor}>
                                 <Option value="temperature">Temperature</Option>
@@ -169,9 +198,12 @@ const SensorManagement = () => {
                             </Select>
                         </Form.Item>
                         <Form.Item name="value" label="Value" rules={[{ required: true, message: 'Please input the Value!' }]}>
-                            <Input type="number"/>
+                            <Input type="number" step="0.1" />
                         </Form.Item>
-                        <Form.Item name="uid" label="UID" rules={[{ required: true, message: 'Please input the UID!' }]}>
+                        <Form.Item label="UID">
+                            {editingSensor ? editingSensor.uid : nextUID}
+                        </Form.Item>
+                        <Form.Item name="uid" hidden>
                             <Input />
                         </Form.Item>
                     </Form>

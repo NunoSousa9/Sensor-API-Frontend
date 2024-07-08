@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Button, Checkbox, message } from 'antd';
 import axios from '../api/axiosInstance';
@@ -7,6 +7,13 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        if (localStorage.getItem('token')) {
+            message.warning('You are already logged in. If you wish to leave, please log out.');
+            navigate('/dashboard');
+        }
+    }, [navigate]);
+    
     const onFinish = async (values) => {
         setLoading(true);
         console.log('Login data being sent:', values);
@@ -37,6 +44,8 @@ const Login = () => {
             setLoading(false);
         }
     };
+
+    
 
     return (
         <div style={{ maxWidth: 300, margin: '0 auto', padding: '50px' }}>

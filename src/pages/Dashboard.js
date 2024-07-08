@@ -91,6 +91,12 @@ const Dashboard = () => {
     message.success(`${type.charAt(0).toUpperCase() + type.slice(1)} data exported successfully!`);
   }
 
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/login');
+        message.success('Logged out successfully');
+    };
+
     const menuItems = [
         {
             label: "Dashboard",
@@ -102,6 +108,12 @@ const Dashboard = () => {
             key: "2",
             onClick: () => navigate("/manage-sensors"),
         },
+        {
+            label: "Logout",
+            key: "3",
+            onClick: handleLogout,
+            style: { marginLeft: 'auto' }
+        }
     ];
 
     return (
