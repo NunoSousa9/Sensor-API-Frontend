@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import SensorManagement from "./pages/SensorManagement";
@@ -9,10 +9,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
 
-  useEffect(() => {
-    localStorage.removeItem('token');
-  }, []);
-
   return (
     <AuthProvider>
       <Router>
@@ -20,7 +16,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/manage-sensors" element={<ProtectedRoute><SensorManagement /></ProtectedRoute>} />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/" element={<ProtectedRoute component={Dashboard} exact />} />
         </Routes>
       </Router>
     </AuthProvider>
