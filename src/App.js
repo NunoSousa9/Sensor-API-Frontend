@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -6,7 +6,12 @@ import SensorManagement from "./pages/SensorManagement";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+
 const App = () => {
+
+  useEffect(() => {
+    localStorage.removeItem('token');
+  }, []);
 
   return (
     <AuthProvider>

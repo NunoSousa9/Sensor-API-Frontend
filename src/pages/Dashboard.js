@@ -16,10 +16,6 @@ const Dashboard = () => {
     const [exportType, setExportType] = useState("all");
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -59,6 +55,11 @@ const Dashboard = () => {
             setLoading(false);
         }
     };
+    
+    useEffect(() => {
+        fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const calculateStandardDeviation = (values) => {
       const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
